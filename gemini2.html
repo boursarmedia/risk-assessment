@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>آزمون ارزیابی ریسک و پیشنهاد پرتفوی</title>
+    <style>
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; }
+        body { background: radial-gradient(circle at 10% 20%, #0a0f1f, #03050c); color: #eef2ff; margin: 0; padding: 20px; min-height: 100vh; display: flex; justify-content: center; align-items: center;}
+        .glass-card { background: rgba(15, 25, 45, 0.85); backdrop-filter: blur(12px); border-radius: 24px; border: 1px solid rgba(59, 130, 246, 0.3); padding: 30px; width: 100%; max-width: 650px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        h2 { color: #38bdf8; text-align: center; margin-top: 0; font-size: 1.6rem;}
+        p.subtitle { text-align: center; color: #94a3b8; font-size: 14px; margin-bottom: 25px; }
+        
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; color: #cbd5e1; font-size: 14px; }
+        input[type="text"] { width: 100%; padding: 14px; background: #0f172a; border: 1px solid #334155; border-radius: 12px; color: white; font-size: 15px; outline: none;}
+        input[type="text"]:focus { border-color: #38bdf8; }
+        
+        .selection-group { display: flex; gap: 10px; flex-wrap: wrap; }
+        .selection-btn { flex: 1; min-width: 80px; text-align: center; padding: 12px; background: #1e293b; border: 1px solid #334155; border-radius: 12px; cursor: pointer; color: #cbd5e1; transition: 0.2s;}
+        .selection-btn.active { background: #3b82f6; border-color: #93c5fd; color: white; font-weight: bold;}
+        
+        .btn { width: 100%; padding: 15px; background: linear-gradient(95deg, #3b82f6, #1e40af); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 10px;}
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(59, 130, 246, 0.4); }
+        
+        .hidden { display: none !important; }
+        
+        .question-text { font-size: 1.2rem; font-weight: bold; color: #fbbf24; margin-bottom: 20px; line-height: 1.6; }
+        .quiz-option { padding: 16px; background: #1e293b; border: 1px solid #334155; border-radius: 16px; margin-bottom: 12px; cursor: pointer; transition: 0.2s; font-size: 15px; line-height: 1.5;}
+        .quiz-option:hover { background: #2563eb; border-color: #93c5fd; transform: translateY(-2px); }
+        
+        .progress-text { text-align: center; color: #94a3b8; font-size: 13px; margin-bottom: 15px; }
+        
+        .result-box { text-align: center; background: rgba(0,0,0,0.3); border-radius: 16px; padding: 20px; margin-bottom: 20px; border: 1px solid #334155;}
+        .risk-title { font-size: 1.8rem; font-weight: bold; margin: 10px 0; }
+        
+        .portfolio-item { margin-bottom: 15px; text-align: right; }
+        .portfolio-label { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 6px; }
+        .bar-bg { width: 100%; background: #1e293b; border-radius: 10px; height: 22px; overflow: hidden; }
+        .bar-fill { height: 100%; display: flex; align-items: center; padding-right: 10px; font-size: 12px; font-weight: bold; transition: width 1s ease-in-out;}
+    </style>
+</head>
+<body>
+
+    <!-- مرحله 1: اطلاعات کاربر -->
+    <div id="step1" class="glass-card">
+        <h2>📊 تعیین سطح ریسک و پیشنهاد پرتفوی</h2>
+        <p class="subtitle">لطفاً برای دریافت تحلیل اختصاصی، اطلاعات خود را وارد کنید</p>
+        
+        <div class="form-group">
+            <label>نام و نام خانوادگی:</label>
+            <input type="text" id="userName" placeholder="نام خود را وارد کنید...">
+        </div>
+        
+        <div class="form-group">
+            <label>جنسیت:</label>
+            <div class="selection-group" id="genderGroup">
+                <div class="selection-btn" data-val="مرد">👨 مرد</div>
+                <div class="selection-btn" data-val="زن">👩 زن</div>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label>بازه سنی:</label>
+            <div class="selection-group" id="ageGroup">
+                <div class="selection-btn" data-val="۱۸-۲۵">۱۸-۲۵</div>
+                <div class="selection-btn" data-val="۲۶-۳۵">۲۶-۳۵</div>
+                <div class="selection-btn" data-val="۳۶-۴۵">۳۶-۴۵</div>
+                <div class="selection-btn" data-val="۴۶+">۴۶+</div>
+            </div>
+        </div>
+        
+        <button class="btn" onclick="startQuiz()">شروع ارزیابی (۱ دقیقه) 🚀</button>
+    </div>
+
+    <!-- مرحله 2: آزمون -->
+    <div id="step2" class="glass-card hidden">
+        <div class="progress-text" id="progressText">سوال 1 از 5</div>
+        <div class="question-text" id="questionText">متن سوال</div>
+        <div id="optionsContainer"></div>
+    </div>
+
+    <!-- مرحله 3: نتیجه نهایی -->
+    <div id="step3" class="glass-card hidden">
+        <h2>🎯 نتیجه تحلیل شما</h2>
+        
+        <div class="result-box">
+            <div style="font-size: 3rem;" id="riskEmoji">⚖️</div>
+            <div style="color: #cbd5e1; font-size: 14px; margin-top: 10px;">پروفایل سرمایه‌گذاری شما:</div>
+            <div class="risk-title" id="riskTitle">در حال محاسبه...</div>
+            <p id="riskDesc" style="color: #94a3b8; font-size: 13px; line-height: 1.6;"></p>
+        </div>
+        
+        <h3 style="color: #38bdf8; font-size: 16px; margin-bottom: 15px;">💼 سبد پیشنهادی (پرتفوی):</h3>
+        <div id="portfolioContainer"></div>
+        
+        <p style="text-align: center; color: #22c55e; font-size: 13px; margin-top: 25px; padding: 10px; background: rgba(34, 197, 94, 0.1); border-radius: 10px;" id="saveStatus">
+            ⏳ در حال ثبت اطلاعات...
+        </p>
+    </div>
+
+    <script>
+        // آدرس وب‌هوک گوگل شیت شما
+        const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbwY_ppn1Zu2yVyL4pTAejEPdH871EM7nAveaBDpR32PyTLE-SG2lMzA2fOzV-vpUpW_bw/exec";
+
+        let userInfo = { name: '', gender: '', age: '' };
+        let currentQIndex = 0;
+        let totalScore = 0;
+
+        // لیست سوالات جدید ارزیابی ریسک
+        const questions = [
+            { 
+                q: "فرض کنید امروز این مبلغ را سرمایه‌گذاری می‌کنید. به احتمال زیاد چه زمانی برای مخارج ضروری زندگی به برداشتِ اصل این پول نیاز پیدا خواهید کرد؟", 
+                opts: ["کمتر از ۱ سال آینده (نیاز به نقدشوندگی بالا دارم)", "بین ۱ تا ۳ سال آینده", "بیشتر از ۳ سال (این پول کاملاً مازاد است)"], 
+                scores: [1, 2, 3] 
+            },
+            { 
+                q: "اگر همین فردا منبع درآمد اصلی خود را از دست بدهید، پس‌انداز در دسترس شما کفاف چند ماه از هزینه‌های زندگی‌تان را می‌دهد؟", 
+                opts: ["کمتر از ۳ ماه", "بین ۳ تا ۶ ماه", "بیشتر از ۶ ماه (پشتوانه مالی امنی دارم)"], 
+                scores: [1, 2, 3] 
+            },
+            { 
+                q: "در شرایط اقتصادی فعلی، کدام یک از این سه سناریو برای شما قابل‌قبول‌تر است؟", 
+                opts: ["سودِ قطعی بگیرم حتی کمتر از تورم (فقط می‌خواهم اصل پولم کم نشود)", "سودی در حد تورم بگیرم و نوسانات کوچکِ مقطعی را تحمل کنم", "سودی بسیار بالاتر از تورم بگیرم با پذیرش ریسکِ از دست رفتنِ بخشی از اصل سرمایه"], 
+                scores: [1, 2, 3] 
+            },
+            { 
+                q: "فرض کنید یک دارایی بسیار جذاب خریده‌اید، اما قیمت آن در یک ماه ۳۰ درصد افت می‌کند. واکنش واقعی شما چیست؟", 
+                opts: ["مضطرب می‌شوم و با قبول ضرر می‌فروشم تا صفر نشود", "نگران می‌شوم، اما هیچ کاری نمی‌کنم تا بازار برگردد", "این افت را یک فرصت می‌بینم و مقدار بیشتری در کفِ قیمت می‌خرم"], 
+                scores: [1, 2, 3] 
+            },
+            { 
+                q: "شما یک سبد امن دارید که ۵٪ سود داده است. دوستتان با یک دارایی پرریسک ۵۰٪ سود کرده است. احساس شما چیست؟", 
+                opts: ["خوشحالم که ریسک نکردم؛ امنیت را ترجیح می‌دهم", "کمی وسوسه می‌شوم، اما تغییری در سبد خودم ایجاد نمی‌کنم", "بلافاصله استراتژی‌ام را تغییر می‌دهم و وارد بازار پرریسک می‌شوم"], 
+                scores: [1, 2, 3] 
+            }
+        ];
+
+        // منطق انتخاب دکمه‌ها در مرحله اول
+        document.querySelectorAll('.selection-btn').forEach(btn => {
+            btn.onclick = function() {
+                let parent = this.parentElement;
+                parent.querySelectorAll('.selection-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+            }
+        });
+
+        function startQuiz() {
+            let nameInput = document.getElementById('userName').value.trim();
+            let genderActive = document.querySelector('#genderGroup .active');
+            let ageActive = document.querySelector('#ageGroup .active');
+
+            if(!nameInput || !genderActive || !ageActive) {
+                alert('لطفاً همه اطلاعات را وارد کنید.');
+                return;
+            }
+
+            userInfo.name = nameInput;
+            userInfo.gender = genderActive.getAttribute('data-val');
+            userInfo.age = ageActive.getAttribute('data-val');
+
+            document.getElementById('step1').classList.add('hidden');
+            document.getElementById('step2').classList.remove('hidden');
+            
+            showQuestion();
+        }
+
+        function showQuestion() {
+            if (currentQIndex >= questions.length) {
+                showResults();
+                return;
+            }
+
+            let qData = questions[currentQIndex];
+            document.getElementById('progressText').innerText = `سوال ${currentQIndex + 1} از ${questions.length}`;
+            document.getElementById('questionText').innerText = qData.q;
+            
+            let optsHtml = '';
+            for(let i = 0; i < qData.opts.length; i++) {
+                optsHtml += `<div class="quiz-option" onclick="selectAnswer(${qData.scores[i]})">${qData.opts[i]}</div>`;
+            }
+            document.getElementById('optionsContainer').innerHTML = optsHtml;
+        }
+
+        function selectAnswer(score) {
+            totalScore += score;
+            currentQIndex++;
+            showQuestion();
+        }
+
+        function showResults() {
+            document.getElementById('step2').classList.add('hidden');
+            document.getElementById('step3').classList.remove('hidden');
+
+            let riskName = "";
+            let riskEmoji = "";
+            let riskColor = "";
+            let riskDesc = "";
+            let portfolio = [];
+
+            if (totalScore <= 8) {
+                riskName = "کم‌ریسک (محافظه‌کار)";
+                riskEmoji = "🐢";
+                riskColor = "#22c55e"; 
+                riskDesc = "شما از نظر روانی تحمل نوسان ندارید یا به پول خود در کوتاه‌مدت نیاز دارید. اولویت اول شما حفظ اصل سرمایه است.";
+                portfolio = [
+                    { name: "صندوق درآمد ثابت / بانک", percent: 40, color: "#3b82f6" },
+                    { name: "طلا و سکه", percent: 30, color: "#fbbf24" },
+                    { name: "دلار / تتر", percent: 20, color: "#10b981" },
+                    { name: "بورس (سهام شاخص‌ساز)", percent: 10, color: "#8b5cf6" }
+                ];
+            } else if (totalScore <= 12) {
+                riskName = "ریسک متوسط (متعادل)";
+                riskEmoji = "🦊";
+                riskColor = "#fbbf24"; 
+                riskDesc = "شما پشتوانه مالی مناسبی دارید و به دنبال حفظ ارزش پول در برابر تورم هستید. ترکیب متعادلی از دارایی‌های امن و متغیر برای شما ایده‌آل است.";
+                portfolio = [
+                    { name: "بورس و دارایی‌های متغیر", percent: 30, color: "#8b5cf6" },
+                    { name: "طلا و سکه", percent: 25, color: "#fbbf24" },
+                    { name: "دلار / تتر", percent: 25, color: "#10b981" },
+                    { name: "صندوق درآمد ثابت / بانک", percent: 20, color: "#3b82f6" }
+                ];
+            } else {
+                riskName = "پرریسک (جسور)";
+                riskEmoji = "🐯";
+                riskColor = "#ef4444"; 
+                riskDesc = "شما پول مازاد دارید، افق زمانی‌تان بلندمدت است و از افت قیمت‌ها نمی‌ترسید. پتانسیل کسب سودهای بالا برای شما فراهم است.";
+                portfolio = [
+                    { name: "بورس و رمزارزها", percent: 50, color: "#ef4444" },
+                    { name: "دلار / تتر", percent: 25, color: "#10b981" },
+                    { name: "طلا و سکه", percent: 15, color: "#fbbf24" },
+                    { name: "صندوق درآمد ثابت (نقدینگی شکار فرصت)", percent: 10, color: "#3b82f6" }
+                ];
+            }
+
+            document.getElementById('riskEmoji').innerText = riskEmoji;
+            document.getElementById('riskTitle').innerText = riskName;
+            document.getElementById('riskTitle').style.color = riskColor;
+            document.getElementById('riskDesc').innerText = riskDesc;
+
+            let portHtml = "";
+            portfolio.forEach(item => {
+                portHtml += `
+                    <div class="portfolio-item">
+                        <div class="portfolio-label">
+                            <span style="color: ${item.color}; font-weight: bold;">${item.percent}%</span>
+                            <span>${item.name}</span>
+                        </div>
+                        <div class="bar-bg">
+                            <div class="bar-fill" style="width: ${item.percent}%; background: ${item.color};"></div>
+                        </div>
+                    </div>
+                `;
+            });
+            document.getElementById('portfolioContainer').innerHTML = portHtml;
+
+            saveDataToGoogleSheets(riskName);
+        }
+
+        function saveDataToGoogleSheets(riskLevelName) {
+            let payload = {
+                name: userInfo.name,
+                age: userInfo.age,
+                gender: userInfo.gender,
+                scenario: "آزمون مستقل جدید",
+                riskScore: totalScore,
+                quizScore: 0, 
+                profitPercent: 0, 
+                sharpeRatio: 0, 
+                personality: riskLevelName 
+            };
+
+            fetch(WEBHOOK_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            }).then(() => {
+                document.getElementById('saveStatus').innerText = "✅ نتایج شما با موفقیت در سیستم ثبت شد!";
+            }).catch(err => {
+                document.getElementById('saveStatus').innerText = "⚠️ مشکلی در ثبت اطلاعات رخ داد.";
+                document.getElementById('saveStatus').style.color = "#ef4444";
+            });
+        }
+    </script>
+</body>
+</html>
